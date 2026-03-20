@@ -1,135 +1,802 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Food Ordering UI</title>
-    <style>
-        body {
-            font-family: Arial;
-            margin: 0;
-            background: #f5f5f5;
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Foodie Hub – Order & Deliver</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root{
+  --bg:#0f0e11;
+  --surface:#1c1b20;
+  --surface2:#252429;
+  --border:#2e2d33;
+  --accent:#f97316;
+  --accent2:#fb923c;
+  --green:#22c55e;
+  --text:#f4f1ee;
+  --muted:#8b8794;
+  --radius:14px;
+  --shadow:0 8px 40px rgba(0,0,0,0.45);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            background: #ff4d4d;
-            color: white;
-            padding: 15px;
-        }
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
-        nav a {
-            color: white;
-            margin: 10px;
-            text-decoration: none;
-        }
+/* ─── HEADER ─── */
+header{
+  position:sticky;top:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:64px;
+  background:rgba(15,14,17,0.85);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.logo{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--text);letter-spacing:-0.5px}
+.logo span{color:var(--accent)}
+.cart-pill{
+  display:flex;align-items:center;gap:10px;
+  background:var(--accent);color:#fff;
+  border:none;padding:9px 20px;border-radius:50px;
+  font-family:'Nunito',sans-serif;font-size:0.9rem;font-weight:700;
+  cursor:pointer;transition:background .2s,transform .15s;
+}
+.cart-pill:hover{background:var(--accent2);transform:scale(1.04)}
+.cart-pill .badge{
+  background:#fff;color:var(--accent);
+  border-radius:50%;width:22px;height:22px;
+  font-size:0.75rem;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+}
+.badge.pop{animation:bpop .25s ease}
+@keyframes bpop{0%{transform:scale(1)}50%{transform:scale(1.6)}100%{transform:scale(1)}}
 
-        .banner {
-            text-align: center;
-            padding: 50px;
-            background: url('https://via.placeholder.com/800x300') no-repeat center;
-            color: white;
-            font-size: 24px;
-        }
+/* ─── HERO ─── */
+.hero{
+  padding:72px 32px 60px;
+  display:flex;align-items:center;justify-content:space-between;gap:32px;
+  background:radial-gradient(ellipse at 30% 50%,rgba(249,115,22,0.12) 0%,transparent 65%);
+  border-bottom:1px solid var(--border);
+}
+.hero-text .tag{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(249,115,22,0.15);color:var(--accent);
+  border:1px solid rgba(249,115,22,0.3);
+  padding:5px 14px;border-radius:50px;
+  font-size:0.78rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  margin-bottom:20px;
+}
+.hero-text h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(2rem,5vw,3.6rem);font-weight:800;
+  line-height:1.1;margin-bottom:16px;
+  letter-spacing:-1px;
+}
+.hero-text h1 em{font-style:normal;color:var(--accent)}
+.hero-text p{color:var(--muted);font-size:1rem;line-height:1.65;max-width:440px;margin-bottom:28px}
+.btn-hero{
+  background:var(--accent);color:#fff;border:none;
+  padding:13px 32px;border-radius:50px;
+  font-family:'Nunito',sans-serif;font-size:0.95rem;font-weight:700;
+  cursor:pointer;transition:background .2s,transform .15s,box-shadow .2s;
+  box-shadow:0 4px 24px rgba(249,115,22,0.35);
+}
+.btn-hero:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(249,115,22,0.45)}
+.hero-gfx{font-size:clamp(4rem,10vw,8rem);animation:float 3.5s ease-in-out infinite;flex-shrink:0}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
 
-        .menu {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 20px;
-            flex-wrap: wrap;
-        }
+/* ─── SECTION ─── */
+.section-head{padding:52px 32px 24px;display:flex;align-items:baseline;gap:14px}
+.section-head h2{font-family:'Syne',sans-serif;font-size:1.7rem;font-weight:800}
+.section-head span{color:var(--muted);font-size:0.9rem}
 
-        .card {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            width: 200px;
-            box-shadow: 0 0 10px #ccc;
-        }
+/* ─── MENU GRID ─── */
+.menu{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+  gap:20px;padding:0 32px 60px;
+}
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;cursor:pointer;
+  transition:transform .22s,border-color .22s,box-shadow .22s;
+  position:relative;
+}
+.card:hover{transform:translateY(-6px);border-color:var(--accent);box-shadow:0 12px 40px rgba(249,115,22,0.2)}
+.card-img{
+  background:linear-gradient(135deg,#1e1c25,#2a2632);
+  padding:32px 20px 24px;text-align:center;font-size:4rem;line-height:1;
+  position:relative;
+}
+.card-img::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border),transparent);
+}
+.veg-dot{
+  position:absolute;top:12px;right:12px;
+  width:18px;height:18px;border:2px solid var(--green);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+}
+.veg-dot::after{content:'';width:8px;height:8px;background:var(--green);border-radius:50%}
+.card-info{padding:16px 18px 18px}
+.card-info h3{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;margin-bottom:4px}
+.card-info p{font-size:0.8rem;color:var(--muted);line-height:1.4;margin-bottom:14px}
+.card-foot{display:flex;align-items:center;justify-content:space-between}
+.price{font-size:1.1rem;font-weight:700;color:var(--text)}
+.price sub{font-size:0.72rem;color:var(--muted);font-weight:500}
+.view-btn{
+  background:var(--accent);color:#fff;border:none;
+  padding:8px 16px;border-radius:8px;font-size:0.82rem;font-weight:700;
+  font-family:'Nunito',sans-serif;cursor:pointer;
+  transition:background .18s,transform .15s;
+}
+.view-btn:hover{background:var(--accent2);transform:scale(1.06)}
 
-        .card img {
-            width: 100%;
-            border-radius: 10px;
-        }
+/* ─── MODAL OVERLAY ─── */
+.overlay{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.overlay.open{opacity:1;pointer-events:all}
 
-        button {
-            background: #ff4d4d;
-            color: white;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
+/* ─── ITEM DETAIL MODAL ─── */
+.item-modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;width:100%;max-width:480px;
+  box-shadow:var(--shadow);
+  transform:translateY(30px) scale(0.97);transition:transform .25s;
+  overflow:hidden;
+}
+.overlay.open .item-modal{transform:translateY(0) scale(1)}
+.item-modal-top{
+  background:linear-gradient(135deg,#1e1c25,#2c2933);
+  padding:40px 20px 28px;text-align:center;position:relative;
+}
+.item-modal-top .close-btn{
+  position:absolute;top:14px;right:14px;
+  background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+  width:34px;height:34px;border-radius:50%;font-size:1.1rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:color .2s,border-color .2s;
+}
+.item-modal-top .close-btn:hover{color:var(--text);border-color:var(--muted)}
+.item-modal-top .big-emoji{font-size:5rem;line-height:1;display:block;margin-bottom:16px}
+.item-modal-top h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800}
+.item-modal-top .tag-row{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.tag-chip{
+  background:rgba(249,115,22,0.15);color:var(--accent);
+  border:1px solid rgba(249,115,22,0.25);
+  padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;
+}
+.item-modal-body{padding:22px 24px}
+.item-modal-body .desc{color:var(--muted);font-size:0.92rem;line-height:1.6;margin-bottom:20px}
 
-        button:hover {
-            background: #e60000;
-        }
+.qty-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.qty-ctrl{display:flex;align-items:center;gap:12px}
+.qty-ctrl button{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  width:36px;height:36px;border-radius:9px;font-size:1.2rem;
+  cursor:pointer;font-family:'Nunito',sans-serif;
+  transition:background .18s,border-color .18s;
+}
+.qty-ctrl button:hover{background:var(--accent);border-color:var(--accent)}
+.qty-val{font-size:1.1rem;font-weight:700;min-width:24px;text-align:center}
+.item-total{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:var(--accent)}
 
-        #cart {
-            text-align: center;
-            margin: 20px;
-            font-size: 18px;
-        }
-    </style>
+.add-to-cart-btn{
+  width:100%;padding:14px;border-radius:12px;
+  background:var(--accent);color:#fff;border:none;
+  font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;
+  cursor:pointer;transition:background .2s,transform .15s;
+  box-shadow:0 4px 20px rgba(249,115,22,0.3);
+}
+.add-to-cart-btn:hover{background:var(--accent2);transform:translateY(-2px)}
+
+/* ─── CART MODAL ─── */
+.cart-modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;width:100%;max-width:520px;
+  max-height:88vh;overflow-y:auto;
+  box-shadow:var(--shadow);
+  transform:translateY(30px) scale(0.97);transition:transform .25s;
+}
+.overlay.open .cart-modal{transform:translateY(0) scale(1)}
+.cart-header{
+  position:sticky;top:0;background:var(--surface);
+  padding:20px 24px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  z-index:10;
+}
+.cart-header h2{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800}
+.cart-header .close-btn{
+  background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+  width:34px;height:34px;border-radius:50%;font-size:1.1rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:color .2s;
+}
+.cart-header .close-btn:hover{color:var(--text)}
+
+.cart-items{padding:16px 24px}
+.cart-item{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.cart-item:last-child{border-bottom:none}
+.ci-emoji{font-size:2rem;flex-shrink:0}
+.ci-info{flex:1}
+.ci-info h4{font-size:0.95rem;font-weight:700;margin-bottom:2px}
+.ci-info p{font-size:0.8rem;color:var(--muted)}
+.ci-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.ci-price{font-size:0.95rem;font-weight:700;color:var(--accent)}
+.ci-remove{
+  background:none;border:none;color:var(--muted);font-size:0.78rem;
+  cursor:pointer;padding:0;font-family:'Nunito',sans-serif;
+  transition:color .18s;
+}
+.ci-remove:hover{color:#ef4444}
+.cart-empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.cart-empty .big{font-size:3rem;margin-bottom:12px}
+
+/* ─── LOCATION SECTION ─── */
+.location-section{padding:20px 24px;border-top:1px solid var(--border)}
+.location-section h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.location-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.loc-tab{
+  background:var(--surface2);border:1px solid var(--border);color:var(--muted);
+  padding:7px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;
+  font-family:'Nunito',sans-serif;cursor:pointer;transition:all .2s;
+}
+.loc-tab.active,.loc-tab:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.loc-panel{display:none}
+.loc-panel.active{display:block}
+
+/* map */
+#deliveryMap{height:200px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px}
+.map-hint{font-size:0.78rem;color:var(--muted);margin-bottom:12px}
+.gps-status{font-size:0.82rem;color:var(--green);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.gps-status.err{color:#ef4444}
+
+/* manual address */
+.addr-group{display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
+.addr-input{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:11px 14px;border-radius:10px;
+  font-family:'Nunito',sans-serif;font-size:0.9rem;
+  transition:border-color .2s;outline:none;
+}
+.addr-input:focus{border-color:var(--accent)}
+.addr-input::placeholder{color:var(--muted)}
+textarea.addr-input{resize:vertical;min-height:70px}
+
+/* saved */
+.saved-list{display:flex;flex-direction:column;gap:8px}
+.saved-item{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:12px 14px;cursor:pointer;
+  display:flex;align-items:center;gap:12px;
+  transition:border-color .2s,background .2s;
+}
+.saved-item.selected,.saved-item:hover{border-color:var(--accent);background:rgba(249,115,22,0.08)}
+.saved-item .si-icon{font-size:1.4rem;flex-shrink:0}
+.saved-item .si-info h5{font-size:0.88rem;font-weight:700;margin-bottom:2px}
+.saved-item .si-info p{font-size:0.78rem;color:var(--muted)}
+.saved-item .si-check{margin-left:auto;color:var(--green);font-size:1.1rem;opacity:0;transition:opacity .2s}
+.saved-item.selected .si-check{opacity:1}
+
+/* ─── CART TOTAL + CHECKOUT ─── */
+.cart-footer{
+  position:sticky;bottom:0;background:var(--surface);
+  padding:16px 24px 20px;border-top:1px solid var(--border);
+}
+.total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.total-row .tl{color:var(--muted);font-size:0.88rem;font-weight:600}
+.total-row .tv{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--accent)}
+.checkout-btn{
+  width:100%;padding:14px;border-radius:12px;
+  background:var(--accent);color:#fff;border:none;
+  font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;
+  cursor:pointer;transition:background .2s,transform .15s,box-shadow .2s;
+  box-shadow:0 4px 20px rgba(249,115,22,0.3);
+}
+.checkout-btn:hover{background:var(--accent2);transform:translateY(-1px)}
+.checkout-btn:disabled{
+  background:var(--surface2);color:var(--muted);
+  box-shadow:none;transform:none;cursor:not-allowed;
+}
+
+/* ─── SUCCESS MODAL ─── */
+.success-modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;width:100%;max-width:380px;
+  padding:44px 32px;text-align:center;
+  box-shadow:var(--shadow);
+  transform:scale(0.9);transition:transform .3s;
+}
+.overlay.open .success-modal{transform:scale(1)}
+.success-modal .big{font-size:4rem;margin-bottom:16px;animation:bounce .6s ease}
+@keyframes bounce{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+.success-modal h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:10px}
+.success-modal p{color:var(--muted);font-size:0.92rem;line-height:1.6;margin-bottom:24px}
+.success-addr{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:12px 16px;margin-bottom:24px;
+  font-size:0.85rem;color:var(--text);text-align:left;line-height:1.5;
+}
+.success-addr strong{color:var(--accent)}
+.back-btn{
+  background:var(--accent);color:#fff;border:none;
+  padding:12px 32px;border-radius:50px;
+  font-family:'Nunito',sans-serif;font-size:0.95rem;font-weight:700;
+  cursor:pointer;transition:background .2s;
+}
+.back-btn:hover{background:var(--accent2)}
+
+/* ─── TOAST ─── */
+#toast{
+  position:fixed;bottom:28px;left:50%;
+  transform:translateX(-50%) translateY(70px);
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:11px 22px;border-radius:50px;
+  font-size:0.88rem;font-weight:600;
+  opacity:0;transition:opacity .3s,transform .3s;
+  pointer-events:none;z-index:9999;white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ─── GPS BUTTON ─── */
+.gps-btn{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);color:var(--green);
+  padding:10px 16px;border-radius:10px;
+  font-family:'Nunito',sans-serif;font-size:0.88rem;font-weight:700;
+  cursor:pointer;transition:background .2s;width:100%;justify-content:center;
+  margin-bottom:12px;
+}
+.gps-btn:hover{background:rgba(34,197,94,0.2)}
+
+/* ─── FOOTER ─── */
+footer{text-align:center;padding:20px;font-size:0.78rem;color:var(--muted);border-top:1px solid var(--border)}
+
+@media(max-width:600px){
+  header{padding:0 16px}
+  .hero{padding:48px 16px 40px;flex-direction:column;text-align:center}
+  .hero-text p{margin:0 auto 24px}
+  .menu{padding:0 16px 40px}
+  .section-head{padding:36px 16px 20px}
+}
+</style>
 </head>
-
 <body>
 
+<!-- HEADER -->
 <header>
-    <h1>🍔 Foodie Hub</h1>
-    <nav>
-        <a href="#">Home</a>
-        <a href="#">Menu</a>
-        <a href="#">Cart (<span id="count">0</span>)</a>
-    </nav>
+  <div class="logo">🍔 Foodie<span>Hub</span></div>
+  <button class="cart-pill" id="cartPill" onclick="openCart()">
+    🛒 Cart
+    <span class="badge" id="cartBadge">0</span>
+  </button>
 </header>
 
-<div class="banner">
-    Delicious Food Delivered Fast 😋
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-text">
+    <span class="tag">⚡ 30-min Delivery</span>
+    <h1>Order Fresh,<br/><em>Eat Happy</em></h1>
+    <p>Tap any dish to explore it, customise your quantity, then checkout with your exact delivery location — map, GPS, or address.</p>
+    <button class="btn-hero" onclick="document.querySelector('.menu').scrollIntoView({behavior:'smooth'})">Browse Menu ↓</button>
+  </div>
+  <div class="hero-gfx">🍽️</div>
+</section>
+
+<!-- SECTION HEAD -->
+<div class="section-head">
+  <h2>Our Menu</h2>
+  <span id="menuCount">6 items</span>
 </div>
 
-<div class="menu">
+<!-- MENU GRID -->
+<div class="menu" id="menuGrid"></div>
 
-    <div class="card">
-        <img src="https://via.placeholder.com/200">
-        <h3>Pizza</h3>
-        <p>₹199</p>
-        <button onclick="addToCart(199)">Add to Cart</button>
+<footer>© 2025 Foodie Hub · Made with ❤️ · Fast & Fresh</footer>
+
+<!-- ══════════════ ITEM DETAIL MODAL ══════════════ -->
+<div class="overlay" id="itemOverlay" onclick="closeItemModal(event)">
+  <div class="item-modal" id="itemModal">
+    <div class="item-modal-top">
+      <button class="close-btn" onclick="closeItemModal()">✕</button>
+      <span class="big-emoji" id="im-emoji"></span>
+      <h2 id="im-name"></h2>
+      <div class="tag-row" id="im-tags"></div>
     </div>
-
-    <div class="card">
-        <img src="https://via.placeholder.com/200">
-        <h3>Burger</h3>
-        <p>₹99</p>
-        <button onclick="addToCart(99)">Add to Cart</button>
+    <div class="item-modal-body">
+      <p class="desc" id="im-desc"></p>
+      <div class="qty-row">
+        <div class="qty-ctrl">
+          <button onclick="changeQty(-1)">−</button>
+          <span class="qty-val" id="im-qty">1</span>
+          <button onclick="changeQty(1)">+</button>
+        </div>
+        <div class="item-total" id="im-total">₹0</div>
+      </div>
+      <button class="add-to-cart-btn" onclick="addCurrentToCart()">Add to Cart →</button>
     </div>
-
-    <div class="card">
-        <img src="https://via.placeholder.com/200">
-        <h3>Drink</h3>
-        <p>₹49</p>
-        <button onclick="addToCart(49)">Add to Cart</button>
-    </div>
-
+  </div>
 </div>
 
-<div id="cart">
-    Total Price: ₹<span id="total">0</span>
+<!-- ══════════════ CART MODAL ══════════════ -->
+<div class="overlay" id="cartOverlay" onclick="closeCartModal(event)">
+  <div class="cart-modal" id="cartModal">
+    <div class="cart-header">
+      <h2>🛒 Your Cart</h2>
+      <button class="close-btn" onclick="closeCartModal()">✕</button>
+    </div>
+
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty"><div class="big">🍽️</div><p>Your cart is empty.<br/>Pick something delicious!</p></div>
+    </div>
+
+    <!-- DELIVERY LOCATION -->
+    <div class="location-section" id="locationSection" style="display:none">
+      <h3>📍 Delivery Location</h3>
+      <div class="location-tabs">
+        <button class="loc-tab active" onclick="switchTab('map',this)">🗺️ Map</button>
+        <button class="loc-tab" onclick="switchTab('gps',this)">📡 GPS</button>
+        <button class="loc-tab" onclick="switchTab('manual',this)">✏️ Manual</button>
+        <button class="loc-tab" onclick="switchTab('saved',this)">⭐ Saved</button>
+      </div>
+
+      <!-- MAP TAB -->
+      <div class="loc-panel active" id="tab-map">
+        <div id="deliveryMap"></div>
+        <p class="map-hint">📌 Click on the map to set your delivery pin</p>
+        <div id="mapAddr" style="font-size:0.82rem;color:var(--muted);min-height:16px"></div>
+      </div>
+
+      <!-- GPS TAB -->
+      <div class="loc-panel" id="tab-gps">
+        <button class="gps-btn" onclick="getGPS()">📡 Detect My Location</button>
+        <div class="gps-status" id="gpsStatus" style="display:none"></div>
+        <div id="gpsAddr" style="font-size:0.82rem;color:var(--muted);min-height:16px"></div>
+      </div>
+
+      <!-- MANUAL TAB -->
+      <div class="loc-panel" id="tab-manual">
+        <div class="addr-group">
+          <input class="addr-input" id="addr-flat" type="text" placeholder="Flat / House No., Building Name"/>
+          <input class="addr-input" id="addr-street" type="text" placeholder="Street / Area / Locality"/>
+          <input class="addr-input" id="addr-city" type="text" placeholder="City"/>
+          <input class="addr-input" id="addr-pin" type="text" placeholder="Pincode"/>
+        </div>
+      </div>
+
+      <!-- SAVED TAB -->
+      <div class="loc-panel" id="tab-saved">
+        <div class="saved-list" id="savedList"></div>
+      </div>
+    </div>
+
+    <div class="cart-footer" id="cartFooter" style="display:none">
+      <div class="total-row">
+        <span class="tl">Order Total</span>
+        <span class="tv">₹<span id="cartTotal">0</span></span>
+      </div>
+      <button class="checkout-btn" id="checkoutBtn" onclick="placeOrder()">Place Order</button>
+    </div>
+  </div>
 </div>
 
+<!-- ══════════════ SUCCESS MODAL ══════════════ -->
+<div class="overlay" id="successOverlay">
+  <div class="success-modal">
+    <div class="big">🎉</div>
+    <h2>Order Placed!</h2>
+    <p>Your food is being prepared and will arrive in <strong>25–35 minutes</strong>.</p>
+    <div class="success-addr" id="successAddr"></div>
+    <button class="back-btn" onclick="resetAll()">Back to Menu</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    let total = 0;
-    let count = 0;
+/* ═══════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════ */
+const MENU = [
+  {id:1, emoji:'🍕', name:'Margherita Pizza', price:199, desc:'Classic tomato base, fresh mozzarella, fragrant basil & a drizzle of extra virgin olive oil.', tags:['Veg','Bestseller','Italian']},
+  {id:2, emoji:'🍔', name:'Veggie Burger', price:99, desc:'Crispy chickpea patty stacked with lettuce, tomato, cheddar & our signature smoky sauce.', tags:['Veg','Quick Bite']},
+  {id:3, emoji:'🥤', name:'Cold Drink', price:49, desc:'Your choice of chilled cola, fresh lemonade, or peach iced tea — the perfect companion.', tags:['Veg','Cold']},
+  {id:4, emoji:'🍟', name:'French Fries', price:79, desc:'Golden hand-cut fries seasoned with sea salt, served with ketchup and garlic mayo.', tags:['Veg','Snack']},
+  {id:5, emoji:'🍰', name:'Cheesecake', price:129, desc:'Velvety New York-style cheesecake with graham cracker crust & seasonal berry compote.', tags:['Veg','Dessert']},
+  {id:6, emoji:'🌮', name:'Veg Tacos', price:149, desc:'Corn tortillas packed with spiced black beans, pico de gallo, guacamole & sour cream.', tags:['Veg','Mexican']},
+];
 
-    function addToCart(price) {
-        total += price;
-        count++;
+const SAVED_ADDRS = [
+  {icon:'🏠', label:'Home', addr:'12, Rose Garden, MG Road, Trichy – 620001'},
+  {icon:'🏢', label:'Office', addr:'Block B, Tech Park, Cantonment, Trichy – 620002'},
+  {icon:'👨‍👩‍👧', label:'Parents', addr:'45, Anna Nagar, 3rd Cross, Trichy – 620017'},
+];
 
-        document.getElementById("total").innerText = total;
-        document.getElementById("count").innerText = count;
-    }
+/* ═══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+let cart = [];          // [{...item, qty, subtotal}]
+let currentItem = null;
+let currentQty  = 1;
+let deliveryMap = null;
+let mapMarker   = null;
+let selectedAddr = '';
+let selectedSaved = -1;
+let activeTab = 'map';
+let mapInit = false;
+
+/* ═══════════════════════════════════════════════
+   RENDER MENU
+══════════════════════════════════════════════ */
+function renderMenu(){
+  const grid = document.getElementById('menuGrid');
+  grid.innerHTML = MENU.map(item=>`
+    <div class="card" onclick="openItem(${item.id})">
+      <div class="card-img">
+        ${item.emoji}
+        <div class="veg-dot"></div>
+      </div>
+      <div class="card-info">
+        <h3>${item.name}</h3>
+        <p>${item.desc.slice(0,70)}…</p>
+        <div class="card-foot">
+          <div class="price">₹${item.price} <sub>/ serving</sub></div>
+          <button class="view-btn" onclick="event.stopPropagation();openItem(${item.id})">View →</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+renderMenu();
+
+/* ═══════════════════════════════════════════════
+   ITEM MODAL
+══════════════════════════════════════════════ */
+function openItem(id){
+  currentItem = MENU.find(m=>m.id===id);
+  currentQty  = 1;
+  document.getElementById('im-emoji').textContent = currentItem.emoji;
+  document.getElementById('im-name').textContent  = currentItem.name;
+  document.getElementById('im-desc').textContent  = currentItem.desc;
+  document.getElementById('im-qty').textContent   = 1;
+  document.getElementById('im-total').textContent = `₹${currentItem.price}`;
+  document.getElementById('im-tags').innerHTML = currentItem.tags.map(t=>`<span class="tag-chip">${t}</span>`).join('');
+  document.getElementById('itemOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeItemModal(e){
+  if(e && e.target!==document.getElementById('itemOverlay')) return;
+  document.getElementById('itemOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function changeQty(delta){
+  currentQty = Math.max(1, currentQty+delta);
+  document.getElementById('im-qty').textContent   = currentQty;
+  document.getElementById('im-total').textContent = `₹${currentItem.price * currentQty}`;
+}
+function addCurrentToCart(){
+  const existing = cart.find(c=>c.id===currentItem.id);
+  if(existing){ existing.qty+=currentQty; existing.subtotal=existing.price*existing.qty; }
+  else { cart.push({...currentItem, qty:currentQty, subtotal:currentItem.price*currentQty}); }
+  updateBadge();
+  closeItemModal();
+  showToast(`✅ ${currentItem.name} × ${currentQty} added!`);
+}
+
+/* ═══════════════════════════════════════════════
+   CART
+══════════════════════════════════════════════ */
+function updateBadge(){
+  const total = cart.reduce((a,c)=>a+c.qty,0);
+  const badge = document.getElementById('cartBadge');
+  badge.textContent = total;
+  badge.classList.remove('pop');
+  void badge.offsetWidth;
+  badge.classList.add('pop');
+}
+function openCart(){
+  renderCart();
+  document.getElementById('cartOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  if(!mapInit && cart.length){ setTimeout(initMap,200); mapInit=true; }
+}
+function closeCartModal(e){
+  if(e && e.target!==document.getElementById('cartOverlay')) return;
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function renderCart(){
+  const container = document.getElementById('cartItems');
+  const locSec    = document.getElementById('locationSection');
+  const footer    = document.getElementById('cartFooter');
+  if(cart.length===0){
+    container.innerHTML=`<div class="cart-empty"><div class="big">🍽️</div><p>Your cart is empty.<br/>Pick something delicious!</p></div>`;
+    locSec.style.display='none'; footer.style.display='none'; return;
+  }
+  container.innerHTML = cart.map(item=>`
+    <div class="cart-item">
+      <div class="ci-emoji">${item.emoji}</div>
+      <div class="ci-info">
+        <h4>${item.name}</h4>
+        <p>₹${item.price} × ${item.qty}</p>
+      </div>
+      <div class="ci-right">
+        <span class="ci-price">₹${item.subtotal}</span>
+        <button class="ci-remove" onclick="removeItem(${item.id})">✕ Remove</button>
+      </div>
+    </div>`).join('');
+  const orderTotal = cart.reduce((a,c)=>a+c.subtotal,0);
+  document.getElementById('cartTotal').textContent = orderTotal;
+  locSec.style.display='block'; footer.style.display='block';
+  renderSaved();
+  validateCheckout();
+  if(!mapInit){ setTimeout(initMap,200); mapInit=true; }
+}
+function removeItem(id){
+  cart = cart.filter(c=>c.id!==id);
+  updateBadge(); renderCart();
+  showToast('🗑️ Item removed');
+}
+
+/* ═══════════════════════════════════════════════
+   LOCATION TABS
+══════════════════════════════════════════════ */
+function switchTab(tab, btn){
+  activeTab = tab;
+  document.querySelectorAll('.loc-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.loc-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='map'){ setTimeout(()=>{ if(deliveryMap) deliveryMap.invalidateSize(); },200); }
+  selectedAddr=''; selectedSaved=-1;
+  renderSaved(); validateCheckout();
+}
+
+/* ─── MAP ─── */
+function initMap(){
+  if(deliveryMap) return;
+  deliveryMap = L.map('deliveryMap').setView([10.7905, 78.7047], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap',maxZoom:19
+  }).addTo(deliveryMap);
+  deliveryMap.on('click',function(e){
+    const {lat,lng}=e.latlng;
+    setMapPin(lat,lng);
+  });
+}
+function setMapPin(lat,lng){
+  if(mapMarker) deliveryMap.removeLayer(mapMarker);
+  mapMarker = L.marker([lat,lng]).addTo(deliveryMap);
+  selectedAddr = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+  document.getElementById('mapAddr').textContent = '📌 Pin set at ' + selectedAddr;
+  validateCheckout();
+}
+
+/* ─── GPS ─── */
+function getGPS(){
+  const statusEl = document.getElementById('gpsStatus');
+  const addrEl   = document.getElementById('gpsAddr');
+  statusEl.style.display='flex'; statusEl.className='gps-status';
+  statusEl.textContent='⏳ Detecting location…';
+  addrEl.textContent='';
+  if(!navigator.geolocation){ statusEl.className='gps-status err'; statusEl.textContent='❌ Geolocation not supported'; return; }
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      const {latitude:lat, longitude:lng} = pos.coords;
+      selectedAddr = `GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      statusEl.textContent='✅ Location detected!';
+      addrEl.textContent='📍 ' + selectedAddr;
+      // also pin on map
+      if(deliveryMap){ setMapPin(lat,lng); deliveryMap.setView([lat,lng],15); }
+      validateCheckout();
+    },
+    ()=>{ statusEl.className='gps-status err'; statusEl.textContent='❌ Permission denied. Please allow location access.'; }
+  );
+}
+
+/* ─── MANUAL ─── */
+function getManualAddr(){
+  const f = document.getElementById('addr-flat').value.trim();
+  const s = document.getElementById('addr-street').value.trim();
+  const c = document.getElementById('addr-city').value.trim();
+  const p = document.getElementById('addr-pin').value.trim();
+  if(!f && !s && !c) return '';
+  return [f,s,c,p].filter(Boolean).join(', ');
+}
+document.addEventListener('input', e=>{
+  if(['addr-flat','addr-street','addr-city','addr-pin'].includes(e.target.id)){
+    selectedAddr = getManualAddr(); validateCheckout();
+  }
+});
+
+/* ─── SAVED ─── */
+function renderSaved(){
+  const list = document.getElementById('savedList');
+  list.innerHTML = SAVED_ADDRS.map((a,i)=>`
+    <div class="saved-item ${selectedSaved===i?'selected':''}" onclick="selectSaved(${i})">
+      <span class="si-icon">${a.icon}</span>
+      <div class="si-info"><h5>${a.label}</h5><p>${a.addr}</p></div>
+      <span class="si-check">✓</span>
+    </div>`).join('');
+}
+function selectSaved(i){
+  selectedSaved = i;
+  selectedAddr  = SAVED_ADDRS[i].addr;
+  renderSaved(); validateCheckout();
+}
+
+/* ─── VALIDATION ─── */
+function validateCheckout(){
+  const btn = document.getElementById('checkoutBtn');
+  if(!btn) return;
+  let addr = '';
+  if(activeTab==='map')    addr = selectedAddr;
+  if(activeTab==='gps')    addr = selectedAddr;
+  if(activeTab==='manual') addr = getManualAddr();
+  if(activeTab==='saved')  addr = selectedAddr;
+  btn.disabled = !(cart.length && addr.length>0);
+  btn.textContent = addr ? 'Place Order →' : 'Set delivery location first';
+}
+
+/* ═══════════════════════════════════════════════
+   CHECKOUT
+══════════════════════════════════════════════ */
+function placeOrder(){
+  let addr = '';
+  if(activeTab==='map')    addr = selectedAddr;
+  if(activeTab==='gps')    addr = selectedAddr;
+  if(activeTab==='manual') addr = getManualAddr();
+  if(activeTab==='saved')  addr = selectedAddr;
+  if(!addr){ showToast('⚠️ Please set a delivery location'); return; }
+
+  const total  = cart.reduce((a,c)=>a+c.subtotal,0);
+  const items  = cart.map(c=>`${c.emoji} ${c.name} ×${c.qty}`).join(', ');
+  document.getElementById('successAddr').innerHTML =
+    `<strong>📦 Items:</strong> ${items}<br/><br/><strong>📍 Deliver to:</strong><br/>${addr}<br/><br/><strong>💳 Total:</strong> ₹${total}`;
+
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.getElementById('successOverlay').classList.add('open');
+}
+function resetAll(){
+  cart=[]; updateBadge();
+  selectedAddr=''; selectedSaved=-1; activeTab='map';
+  document.getElementById('successOverlay').classList.remove('open');
+  document.body.style.overflow='';
+  mapMarker=null; mapInit=false; deliveryMap=null;
+  document.getElementById('deliveryMap').innerHTML='';
+  document.getElementById('gpsStatus').style.display='none';
+  document.getElementById('gpsAddr').textContent='';
+  document.getElementById('mapAddr').textContent='';
+  ['addr-flat','addr-street','addr-city','addr-pin'].forEach(id=>document.getElementById(id).value='');
+  showToast('🎊 Thanks for ordering with Foodie Hub!');
+}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════ */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),2400);
+}
 </script>
-
 </body>
 </html>
